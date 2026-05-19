@@ -288,12 +288,21 @@ function updateWidgetFromStorage() {
 
 // Receive messages from MAIN world window.postMessage
 window.addEventListener('message', (event) => {
-  // Only accept messages from same window
-  if (event.source !== window) return;
   if (!isContextValid()) return;
 
   const msg = event.data;
   if (!msg || typeof msg !== 'object') return;
+
+  // Verify it is one of our specific token tracker events
+  const validTypes = [
+    'CLAUDE_ME_RECEIVED',
+    'CLAUDE_ORG_RECEIVED',
+    'CLAUDE_CHAT_LOADED',
+    'CLAUDE_COMPLETION_FINISHED',
+    'CLAUDE_USAGE_RECEIVED'
+  ];
+  if (!validTypes.includes(msg.type)) return;
+
 
   switch (msg.type) {
     case 'CLAUDE_ME_RECEIVED':
