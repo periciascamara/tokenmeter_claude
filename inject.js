@@ -234,8 +234,85 @@
           }
         }).catch(() => {});
       }
+
+      // 4. Intercept Claude's native usage limits endpoint
+      else if (url.includes('/usage') && !url.includes('/completion')) {
+        const clone = response.clone();
+        clone.json().then(data => {
+          if (data) {
+            window.postMessage({
+              type: 'CLAUDE_USAGE_RECEIVED',
+              data: data
+            }, '*');
+          }
+        }).catch(() => {});
+      }
     }
 
     return response;
   };
+
+  // Proactively fetch profile and organizations to populate initial state instantly
+  function proactiveFetch() {
+    originalFetch('/api/me')
+      .then(res => {
+        if (!res.ok) throw new Error('Not authenticated');
+        return res.json();
+      })
+      .then(data => {
+        if (data) {
+          window.postMessage({
+            type: 'CLAUDE_ME_RECEIVED',
+            data: {
+              email: data.email_address || '',
+              name: (data.profile && data.profile.name) || 'Claude User',
+              photoUrl: (data.profile && data.profile.photo_url) || ''
+            }
+          }, '*');
+        }
+      }).catch(e => console.log('[TokenMeter] Proactive /api/me failed:', e));
+
+    originalFetch('/api/organizations')
+      .then(res => res.json())
+      .then(orgs => {
+        if (Array.isArray(orgs) && orgs.length > 0) {
+          const org = orgs[0];
+          let plan = 'Free Plan';
+          
+          if (org.active_flags && Array.isArray(org.active_flags)) {
+            if (org.active_flags.includes('pro') || org.active_flags.includes('claude_pro')) {
+              plan = 'Claude Pro';
+            } else if (org.active_flags.includes('team') || org.active_flags.includes('claude_team')) {
+              plan = 'Claude Team';
+            }
+          } else if (org.capabilities && Array.isArray(org.capabilities)) {
+            if (org.capabilities.includes('pro_tier')) {
+              plan = 'Claude Pro';
+            }
+          }
+
+          window.postMessage({
+            type: 'CLAUDE_ORG_RECEIVED',
+            data: {
+              orgName: org.name || 'Organization',
+              plan
+            }
+          }, '*');
+
+          // Fetch usage limits as well!
+          originalFetch(`/api/organizations/${org.uuid}/usage`)
+            .then(res => res.json())
+            .then(usageData => {
+              window.postMessage({
+                type: 'CLAUDE_USAGE_RECEIVED',
+                data: usageData
+              }, '*');
+            }).catch(e => console.log('[TokenMeter] Proactive /usage failed:', e));
+        }
+      }).catch(e => console.log('[TokenMeter] Proactive /api/organizations failed:', e));
+  }
+
+  // Trigger proactive fetch after a short delay
+  setTimeout(proactiveFetch, 1500);
 })();
+

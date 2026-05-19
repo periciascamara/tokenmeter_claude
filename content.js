@@ -1,14 +1,6 @@
 // Claude.ai TokenMeter Content Script
 
-// Inject the MAIN world interceptor script
-(function injectScript() {
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('inject.js');
-  script.onload = function() {
-    this.remove();
-  };
-  (document.head || document.documentElement).appendChild(script);
-})();
+// (Manual script injection removed; manifest.json now handles world: MAIN injection directly)
 
 // Floating Widget State
 let isExpanded = false;
@@ -145,7 +137,9 @@ function updateWidgetFromStorage() {
     'weeklyUsage',
     'currentModel',
     'sessionTokens',
-    'currentUser'
+    'currentUser',
+    'apiSessionPct',
+    'apiWeeklyPct'
   ], (data) => {
     if (!widgetContainer) return;
 
@@ -195,9 +189,14 @@ function updateWidgetFromStorage() {
       activeModel.textContent = model.replace(/^claude-/, 'Claude ');
     }
 
-    // Calculate Percentages
-    const sessionPct = Math.min(100, Math.round((session.total / sessionLimit) * 100));
-    const weeklyPct = Math.min(100, Math.round((weeklyTokens / weeklyLimit) * 100));
+    // Calculate Percentages (prioritize official API values)
+    const sessionPct = (typeof data.apiSessionPct === 'number') 
+      ? Math.round(data.apiSessionPct) 
+      : Math.min(100, Math.round((session.total / sessionLimit) * 100));
+
+    const weeklyPct = (typeof data.apiWeeklyPct === 'number') 
+      ? Math.round(data.apiWeeklyPct) 
+      : Math.min(100, Math.round((weeklyTokens / weeklyLimit) * 100));
 
     // Update Session DOM
     const sessionPctEl = document.getElementById('tm-session-pct');
@@ -304,6 +303,12 @@ window.addEventListener('message', (event) => {
         chrome.runtime.sendMessage({ type: 'UPDATE_ME', data: currentUser }, () => {
           updateWidgetFromStorage();
         });
+      });
+      break;
+
+    case 'CLAUDE_USAGE_RECEIVED':
+      chrome.runtime.sendMessage({ type: 'UPDATE_USAGE', data: msg.data }, () => {
+        updateWidgetFromStorage();
       });
       break;
 

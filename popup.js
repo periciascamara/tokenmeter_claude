@@ -66,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'weeklyUsage',
       'currentModel',
       'sessionTokens',
-      'currentUser'
+      'currentUser',
+      'apiSessionPct',
+      'apiWeeklyPct'
     ], (data) => {
       const rate = data.exchangeRate || 5.15;
       const sessionLimit = data.sessionLimit || 200000;
@@ -109,9 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
         activeModel.textContent = model.replace(/^claude-/, 'Claude ');
       }
 
-      // Percentages
-      const sessionPct = Math.min(100, Math.round((session.total / sessionLimit) * 100));
-      const weeklyPct = Math.min(100, Math.round((weeklyTokens / weeklyLimit) * 100));
+      // Percentages (prioritize official API values)
+      const sessionPct = (typeof data.apiSessionPct === 'number') 
+        ? Math.round(data.apiSessionPct) 
+        : Math.min(100, Math.round((session.total / sessionLimit) * 100));
+
+      const weeklyPct = (typeof data.apiWeeklyPct === 'number') 
+        ? Math.round(data.apiWeeklyPct) 
+        : Math.min(100, Math.round((weeklyTokens / weeklyLimit) * 100));
 
       // Session UI Progress
       sessionPctEl.textContent = `${sessionPct}%`;
