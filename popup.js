@@ -29,7 +29,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputExchangeRate = document.getElementById('input-exchange-rate');
   const inputSessionLimit = document.getElementById('input-session-limit');
   const inputWeeklyLimit = document.getElementById('input-weekly-limit');
+  const inputWidgetHotkey = document.getElementById('input-widget-hotkey');
   const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+  // Keydown recorder for widget hotkey input
+  inputWidgetHotkey.addEventListener('keydown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Ignore single modifier key presses
+    if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+      return;
+    }
+
+    const parts = [];
+    if (e.ctrlKey) parts.push('Ctrl');
+    if (e.altKey) parts.push('Alt');
+    if (e.shiftKey) parts.push('Shift');
+    if (e.metaKey) parts.push('Meta');
+
+    let key = e.key;
+    if (key === ' ') {
+      key = 'Space';
+    } else if (key.length === 1) {
+      key = key.toUpperCase();
+    }
+    parts.push(key);
+
+    inputWidgetHotkey.value = parts.join('+');
+  });
 
   // Toggle Settings Section
   settingsHeader.addEventListener('click', () => {
@@ -42,11 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const rate = parseFloat(inputExchangeRate.value) || 5.15;
     const sessionLimit = parseInt(inputSessionLimit.value, 10) || 200000;
     const weeklyLimit = parseInt(inputWeeklyLimit.value, 10) || 5000000;
+    const widgetHotkey = inputWidgetHotkey.value || 'Alt+Shift+K';
 
     chrome.storage.local.set({
       exchangeRate: rate,
       sessionLimit: sessionLimit,
-      weeklyLimit: weeklyLimit
+      weeklyLimit: weeklyLimit,
+      widgetHotkey: widgetHotkey
     }, () => {
       // Collapse settings after saving
       settingsContent.classList.remove('open');
@@ -68,7 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'sessionTokens',
       'currentUser',
       'apiSessionPct',
-      'apiWeeklyPct'
+      'apiWeeklyPct',
+      'widgetHotkey'
     ], (data) => {
       const rate = data.exchangeRate || 5.15;
       const sessionLimit = data.sessionLimit || 200000;
@@ -77,11 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const session = data.sessionTokens || { input: 0, output: 0, total: 0 };
       const model = data.currentModel || 'claude-3-5-sonnet';
       const user = data.currentUser || { name: 'Claude User', email: '', photoUrl: '', plan: 'Free Plan' };
+      const hotkey = data.widgetHotkey || 'Alt+Shift+K';
 
       // Pre-fill inputs if not focused
       if (document.activeElement !== inputExchangeRate) inputExchangeRate.value = rate;
       if (document.activeElement !== inputSessionLimit) inputSessionLimit.value = sessionLimit;
       if (document.activeElement !== inputWeeklyLimit) inputWeeklyLimit.value = weeklyLimit;
+      if (document.activeElement !== inputWidgetHotkey) inputWidgetHotkey.value = hotkey;
 
       // Profile Header
       const defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';

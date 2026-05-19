@@ -347,3 +347,61 @@ chrome.storage.onChanged.addListener((changes, area) => {
     updateWidgetFromStorage();
   }
 });
+
+// Toggle widget expanded/collapsed state
+function toggleWidgetPanel() {
+  const panel = document.getElementById('tm-widget-panel');
+  const badge = document.getElementById('tm-widget-badge');
+  if (!panel || !badge) return;
+
+  isExpanded = !isExpanded;
+  if (isExpanded) {
+    panel.classList.add('open');
+    badge.style.display = 'none';
+  } else {
+    panel.classList.remove('open');
+    badge.style.display = 'flex';
+  }
+}
+
+// Check if keyboard event matches configured shortcut format (e.g. "Ctrl+Shift+K")
+function eventMatchesHotkey(event, hotkeyStr) {
+  if (!hotkeyStr) return false;
+  const parts = hotkeyStr.split('+').map(p => p.trim().toLowerCase());
+  
+  const hasCtrl = parts.includes('ctrl');
+  const hasAlt = parts.includes('alt');
+  const hasShift = parts.includes('shift');
+  const hasMeta = parts.includes('meta');
+
+  const mainKeyPart = parts.find(p => !['ctrl', 'alt', 'shift', 'meta'].includes(p));
+  if (!mainKeyPart) return false;
+
+  if (event.ctrlKey !== hasCtrl) return false;
+  if (event.altKey !== hasAlt) return false;
+  if (event.shiftKey !== hasShift) return false;
+  if (event.metaKey !== hasMeta) return false;
+
+  let key = event.key.toLowerCase();
+  if (key === ' ') key = 'space';
+  return key === mainKeyPart;
+}
+
+// Window keydown listener for widget hotkey
+window.addEventListener('keydown', (event) => {
+  // If user is typing in a text field, do not trigger the hotkey toggle
+  const tag = event.target.tagName.toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || event.target.isContentEditable) {
+    return;
+  }
+
+  chrome.storage.local.get(['widgetHotkey'], (data) => {
+    const hotkey = data.widgetHotkey || 'Alt+Shift+K';
+    if (eventMatchesHotkey(event, hotkey)) {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleWidgetPanel();
+    }
+  });
+});
+

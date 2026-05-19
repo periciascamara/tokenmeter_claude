@@ -56,5 +56,14 @@
         "https://claude.ai/*"
       ]
     }
-  ]
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "MacCtrl+Shift+K"
+      },
+      "description": "Abrir o popup do TokenMeter"
+    }
+  }
 }
