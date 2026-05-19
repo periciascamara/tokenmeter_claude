@@ -128,8 +128,14 @@ function formatBRL(value) {
   }).format(value);
 }
 
+// Helper to check if extension context is valid
+function isContextValid() {
+  return typeof chrome !== 'undefined' && chrome.runtime && !!chrome.runtime.id;
+}
+
 // Fetch values from storage and update DOM
 function updateWidgetFromStorage() {
+  if (!isContextValid()) return;
   chrome.storage.local.get([
     'exchangeRate',
     'sessionLimit',
@@ -284,6 +290,7 @@ function updateWidgetFromStorage() {
 window.addEventListener('message', (event) => {
   // Only accept messages from same window
   if (event.source !== window) return;
+  if (!isContextValid()) return;
 
   const msg = event.data;
   if (!msg || typeof msg !== 'object') return;
@@ -342,11 +349,14 @@ window.addEventListener('message', (event) => {
 });
 
 // Update the floating widget if the settings are updated from options/popup
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local') {
-    updateWidgetFromStorage();
-  }
-});
+if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (!isContextValid()) return;
+    if (area === 'local') {
+      updateWidgetFromStorage();
+    }
+  });
+}
 
 // Toggle widget expanded/collapsed state
 function toggleWidgetPanel() {
@@ -394,8 +404,10 @@ window.addEventListener('keydown', (event) => {
   if (tag === 'input' || tag === 'textarea' || event.target.isContentEditable) {
     return;
   }
+  if (!isContextValid()) return;
 
   chrome.storage.local.get(['widgetHotkey'], (data) => {
+    if (!isContextValid()) return;
     const hotkey = data.widgetHotkey || 'Alt+Shift+K';
     if (eventMatchesHotkey(event, hotkey)) {
       event.preventDefault();
