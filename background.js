@@ -103,6 +103,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const utilization5h = (data && data.five_hour) ? data.five_hour.utilization : 0;
       const utilization7d = (data && data.seven_day) ? data.seven_day.utilization : 0;
       
+      const resetsAt5h = (data && data.five_hour) ? data.five_hour.resets_at : null;
+      const resetsAt7d = (data && data.seven_day) ? data.seven_day.resets_at : null;
+      
       const updatedWeeklyAmount = Math.round((utilization7d / 100) * weeklyLimit);
       const weeklyUsage = res.weeklyUsage || { amount: 0, lastReset: Date.now() };
       weeklyUsage.amount = updatedWeeklyAmount;
@@ -110,6 +113,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       chrome.storage.local.set({
         apiSessionPct: utilization5h,
         apiWeeklyPct: utilization7d,
+        apiSessionResetsAt: resetsAt5h,
+        apiWeeklyResetsAt: resetsAt7d,
         weeklyUsage: weeklyUsage
       }, () => {
         sendResponse({ status: 'ok' });

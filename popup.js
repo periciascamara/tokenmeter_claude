@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const weeklyProgress = document.getElementById('weekly-progress');
   const weeklyTxt = document.getElementById('weekly-tokens-txt');
   
+  const sessionResetEl = document.getElementById('session-reset-txt');
+  const weeklyResetEl = document.getElementById('weekly-reset-txt');
+
   const sessionCostEl = document.getElementById('session-cost');
   const sessionCostUsdEl = document.getElementById('session-cost-usd');
   
@@ -99,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'currentUser',
       'apiSessionPct',
       'apiWeeklyPct',
+      'apiSessionResetsAt',
+      'apiWeeklyResetsAt',
       'widgetHotkey'
     ], (data) => {
       const rate = data.exchangeRate || 5.15;
@@ -169,6 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       sessionTxt.textContent = `${session.total.toLocaleString()} / ${(sessionLimit / 1000).toFixed(0)}k tokens`;
 
+      // Session Reset Time
+      if (sessionResetEl) {
+        if (data.apiSessionResetsAt) {
+          sessionResetEl.textContent = formatResetTime(data.apiSessionResetsAt);
+        } else {
+          sessionResetEl.textContent = '';
+        }
+      }
+
       // Weekly UI Progress
       weeklyPctEl.textContent = `${weeklyPct}%`;
       weeklyProgress.style.width = `${weeklyPct}%`;
@@ -182,6 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const mbFormat = (weeklyLimit / 1000000).toFixed(1);
       weeklyTxt.textContent = `${weeklyTokens.toLocaleString()} / ${mbFormat}M tokens`;
+
+      // Weekly Reset Time
+      if (weeklyResetEl) {
+        if (data.apiWeeklyResetsAt) {
+          weeklyResetEl.textContent = formatResetTime(data.apiWeeklyResetsAt);
+        } else {
+          // Fallback to local 7-day rolling reset
+          const lastReset = (data.weeklyUsage && data.weeklyUsage.lastReset) || Date.now();
+          const fallbackResetIso = new Date(lastReset + 7 * 24 * 60 * 60 * 1000).toISOString();
+          weeklyResetEl.textContent = formatResetTime(fallbackResetIso);
+        }
+      }
 
       // Costs Estimation
       let usdSpend = 0;

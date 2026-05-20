@@ -58,7 +58,10 @@ function initWidget() {
           <div class="tm-progress-track">
             <div class="tm-progress-bar" id="tm-session-progress"></div>
           </div>
-          <div class="tm-tokens-detail" id="tm-session-tokens-txt">0 / 200k tkn</div>
+          <div class="tm-usage-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <span class="tm-tokens-reset" id="tm-session-reset-txt" style="font-size: 10px; color: var(--text-muted);"></span>
+            <span class="tm-tokens-detail" id="tm-session-tokens-txt" style="font-size: 10px; color: var(--text-muted); margin-top: 0;">0 / 200k tkn</span>
+          </div>
         </div>
 
         <!-- Weekly Progress Bar -->
@@ -70,7 +73,10 @@ function initWidget() {
           <div class="tm-progress-track">
             <div class="tm-progress-bar" id="tm-weekly-progress"></div>
           </div>
-          <div class="tm-tokens-detail" id="tm-weekly-tokens-txt">0 / 5.0M tkn</div>
+          <div class="tm-usage-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <span class="tm-tokens-reset" id="tm-weekly-reset-txt" style="font-size: 10px; color: var(--text-muted);"></span>
+            <span class="tm-tokens-detail" id="tm-weekly-tokens-txt" style="font-size: 10px; color: var(--text-muted); margin-top: 0;">0 / 5.0M tkn</span>
+          </div>
         </div>
 
         <!-- Cost Estimate -->
@@ -145,7 +151,9 @@ function updateWidgetFromStorage() {
     'sessionTokens',
     'currentUser',
     'apiSessionPct',
-    'apiWeeklyPct'
+    'apiWeeklyPct',
+    'apiSessionResetsAt',
+    'apiWeeklyResetsAt'
   ], (data) => {
     if (!widgetContainer) return;
 
@@ -224,6 +232,16 @@ function updateWidgetFromStorage() {
       sessionTxt.textContent = `${session.total.toLocaleString()} / ${(sessionLimit / 1000).toFixed(0)}k tokens`;
     }
 
+    // Update Session Reset Time
+    const sessionResetEl = document.getElementById('tm-session-reset-txt');
+    if (sessionResetEl) {
+      if (data.apiSessionResetsAt) {
+        sessionResetEl.textContent = formatResetTime(data.apiSessionResetsAt);
+      } else {
+        sessionResetEl.textContent = '';
+      }
+    }
+
     // Update Weekly DOM
     const weeklyPctEl = document.getElementById('tm-weekly-pct');
     const weeklyProgress = document.getElementById('tm-weekly-progress');
@@ -242,6 +260,19 @@ function updateWidgetFromStorage() {
     if (weeklyTxt) {
       const mbFormat = (weeklyLimit / 1000000).toFixed(1);
       weeklyTxt.textContent = `${weeklyTokens.toLocaleString()} / ${mbFormat}M tokens`;
+    }
+
+    // Update Weekly Reset Time
+    const weeklyResetEl = document.getElementById('tm-weekly-reset-txt');
+    if (weeklyResetEl) {
+      if (data.apiWeeklyResetsAt) {
+        weeklyResetEl.textContent = formatResetTime(data.apiWeeklyResetsAt);
+      } else {
+        // Fallback to local 7-day rolling reset
+        const lastReset = (data.weeklyUsage && data.weeklyUsage.lastReset) || Date.now();
+        const fallbackResetIso = new Date(lastReset + 7 * 24 * 60 * 60 * 1000).toISOString();
+        weeklyResetEl.textContent = formatResetTime(fallbackResetIso);
+      }
     }
 
     // Update circular progress badge

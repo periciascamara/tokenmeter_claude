@@ -67,6 +67,48 @@ function formatBRL(value) {
   }).format(value);
 }
 
+// Format reset time/dates into user friendly strings
+function formatResetTime(isoString) {
+  if (!isoString) return '';
+  try {
+    const resetDate = new Date(isoString);
+    if (isNaN(resetDate.getTime())) return '';
+    
+    const now = new Date();
+    const diffMs = resetDate.getTime() - now.getTime();
+    if (diffMs <= 0) return 'Reinício iminente';
+
+    // Check if it resets today
+    const isToday = resetDate.getDate() === now.getDate() && 
+                    resetDate.getMonth() === now.getMonth() && 
+                    resetDate.getFullYear() === now.getFullYear();
+
+    // Check if tomorrow
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = resetDate.getDate() === tomorrow.getDate() && 
+                       resetDate.getMonth() === tomorrow.getMonth() && 
+                       resetDate.getFullYear() === tomorrow.getFullYear();
+
+    const hours = String(resetDate.getHours()).padStart(2, '0');
+    const minutes = String(resetDate.getMinutes()).padStart(2, '0');
+
+    if (isToday) {
+      return `Reinicia hoje às ${hours}:${minutes}`;
+    } else if (isTomorrow) {
+      return `Reinicia amanhã às ${hours}:${minutes}`;
+    } else {
+      const days = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+      const dayName = days[resetDate.getDay()];
+      const day = String(resetDate.getDate()).padStart(2, '0');
+      const month = String(resetDate.getMonth() + 1).padStart(2, '0');
+      return `Reinicia ${dayName}., ${day}/${month} às ${hours}:${minutes}`;
+    }
+  } catch (e) {
+    return '';
+  }
+}
+
 // Export functions if running in Node, otherwise keep global for extension scripts
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -74,6 +116,8 @@ if (typeof module !== 'undefined' && module.exports) {
     MODEL_RATES,
     getRatesForModel,
     calculateUSDSpend,
-    formatBRL
+    formatBRL,
+    formatResetTime
   };
 }
+
