@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'apiWeeklyPct',
       'apiSessionResetsAt',
       'apiWeeklyResetsAt',
+      'sessionLastUpdated',
       'widgetHotkey'
     ], (data) => {
       const rate = data.exchangeRate || 5.15;
@@ -178,6 +179,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sessionResetEl) {
         if (data.apiSessionResetsAt) {
           sessionResetEl.textContent = formatResetTime(data.apiSessionResetsAt);
+        } else if (session && session.total > 0) {
+          // Fallback to local 5-hour rolling reset
+          const lastUpdated = data.sessionLastUpdated || Date.now();
+          const fallbackResetIso = new Date(lastUpdated + 5 * 60 * 60 * 1000).toISOString();
+          sessionResetEl.textContent = formatResetTime(fallbackResetIso);
         } else {
           sessionResetEl.textContent = '';
         }

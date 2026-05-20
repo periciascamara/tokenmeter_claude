@@ -68,10 +68,22 @@ function formatBRL(value) {
 }
 
 // Format reset time/dates into user friendly strings
-function formatResetTime(isoString) {
-  if (!isoString) return '';
+function formatResetTime(timeVal) {
+  if (!timeVal) return '';
   try {
-    const resetDate = new Date(isoString);
+    let dateInput = timeVal;
+    
+    // Support numeric UNIX timestamps (seconds vs milliseconds)
+    const num = Number(timeVal);
+    if (!isNaN(num)) {
+      if (num < 100000000000) { 
+        dateInput = num * 1000;
+      } else {
+        dateInput = num;
+      }
+    }
+    
+    const resetDate = new Date(dateInput);
     if (isNaN(resetDate.getTime())) return '';
     
     const now = new Date();

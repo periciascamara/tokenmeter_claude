@@ -85,6 +85,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       chrome.storage.local.set({
         weeklyUsage: weekly,
         sessionTokens: session,
+        sessionLastUpdated: Date.now(),
         currentModel: model || 'claude-3-5-sonnet'
       });
     });
