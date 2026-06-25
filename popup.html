@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>TokenMeter - Claude.ai Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="tm-popup-body">
+  <div class="tm-container">
+    
+    <!-- Title Bar -->
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+      <span style="font-size: 14px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TOKENMETER</span>
+      <span style="font-size: 10px; color: var(--text-muted);">v1.0.0</span>
+    </div>
+
+    <!-- Main Stats Card -->
+    <div class="tm-card">
+      
+      <!-- Profile Header -->
+      <div class="tm-profile" style="margin-bottom: 12px;">
+        <div class="tm-avatar-wrapper">
+          <img class="tm-avatar" id="user-avatar" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" alt="Avatar">
+          <div class="tm-avatar-ring" id="avatar-ring"></div>
+        </div>
+        <div class="tm-user-info">
+          <span class="tm-user-name" id="display-name">Claude User</span>
+          <span class="tm-user-email" id="display-email"></span>
+          <span class="tm-plan-badge" id="plan-badge">Free Plan</span>
+        </div>
+      </div>
+
+      <!-- Model Section -->
+      <div class="tm-model-section">
+        <span>Modelo Ativo:</span>
+        <span class="tm-model-badge">
+          <span class="tm-model-dot"></span>
+          <span id="active-model">Sonnet 3.5</span>
+        </span>
+      </div>
+
+      <!-- Session Progress Bar -->
+      <div class="tm-usage-item">
+        <div class="tm-usage-header">
+          <span class="tm-usage-title">Uso da Sessão (Contexto)</span>
+          <span class="tm-usage-value" id="session-pct">0%</span>
+        </div>
+        <div class="tm-progress-track">
+          <div class="tm-progress-bar" id="session-progress"></div>
+        </div>
+        <div class="tm-usage-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+          <span class="tm-tokens-reset" id="session-reset-txt" style="font-size: 10px; color: var(--text-muted);"></span>
+          <span class="tm-tokens-detail" id="session-tokens-txt" style="font-size: 10px; color: var(--text-muted); margin-top: 0;">0 / 200k tkn</span>
+        </div>
+      </div>
+
+      <!-- Weekly Progress Bar -->
+      <div class="tm-usage-item">
+        <div class="tm-usage-header">
+          <span class="tm-usage-title">Uso Semanal</span>
+          <span class="tm-usage-value" id="weekly-pct">0%</span>
+        </div>
+        <div class="tm-progress-track">
+          <div class="tm-progress-bar" id="weekly-progress"></div>
+        </div>
+        <div class="tm-usage-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+          <span class="tm-tokens-reset" id="weekly-reset-txt" style="font-size: 10px; color: var(--text-muted);"></span>
+          <span class="tm-tokens-detail" id="weekly-tokens-txt" style="font-size: 10px; color: var(--text-muted); margin-top: 0;">0 / 5.0M tkn</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Cost Section -->
+    <div class="tm-cost-section">
+      <span class="tm-cost-label">CUSTO ESTIMADO DA SESSÃO</span>
+      <span class="tm-cost-amount" id="session-cost">R$ 0,00</span>
+      <span class="tm-cost-usd" id="session-cost-usd">$0.00 USD • Cotação: R$ 5,15</span>
+    </div>
+
+    <!-- Settings (Collapsible) -->
+    <div class="tm-card" style="padding: 10px 14px;">
+      <div class="tm-settings-header" id="settings-header">
+        <span>Configurações</span>
+        <span class="tm-settings-arrow" id="settings-arrow">&#9656;</span>
+      </div>
+      
+      <div class="tm-settings-content" id="settings-content">
+        <!-- Exchange Rate -->
+        <div class="tm-field">
+          <label for="input-exchange-rate">Cotação Dólar (USD para BRL)</label>
+          <input type="number" id="input-exchange-rate" step="0.01" min="0.01" value="5.15">
+        </div>
+
+        <!-- Session Limit -->
+        <div class="tm-field">
+          <label for="input-session-limit">Limite da Sessão (Tokens)</label>
+          <input type="number" id="input-session-limit" step="1000" min="1000" value="200000">
+        </div>
+
+        <!-- Weekly Limit -->
+        <div class="tm-field">
+          <label for="input-weekly-limit">Limite Semanal (Tokens)</label>
+          <input type="number" id="input-weekly-limit" step="10000" min="10000" value="5000000">
+        </div>
+
+        <!-- Widget Hotkey -->
+        <div class="tm-field">
+          <label for="input-widget-hotkey">Atalho do Widget na Página</label>
+          <input type="text" id="input-widget-hotkey" readonly placeholder="Clique para definir atalho" style="cursor: pointer; text-align: center; font-weight: 500;">
+        </div>
+
+        <!-- Save Button -->
+        <button class="tm-save-btn" id="save-settings-btn">Salvar Alterações</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="utils.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
