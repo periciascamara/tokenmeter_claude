@@ -116,6 +116,20 @@
                     }
                   }, '*');
 
+                  // Proactively fetch real usage to stay synced
+                  if (window.claudeOrgUuid) {
+                    setTimeout(() => {
+                      originalFetch(`/api/organizations/${window.claudeOrgUuid}/usage`)
+                        .then(res => res.json())
+                        .then(usageData => {
+                          window.postMessage({
+                            type: 'CLAUDE_USAGE_RECEIVED',
+                            data: usageData
+                          }, '*');
+                        }).catch(e => console.log('Refresh usage failed:', e));
+                    }, 500);
+                  }
+
                   controller.close();
                   break;
                 }
@@ -277,6 +291,7 @@
       .then(orgs => {
         if (Array.isArray(orgs) && orgs.length > 0) {
           const org = orgs[0];
+          window.claudeOrgUuid = org.uuid; // Save for refreshing later
           let plan = 'Free Plan';
           
           if (org.active_flags && Array.isArray(org.active_flags)) {
@@ -285,10 +300,21 @@
             } else if (org.active_flags.includes('team') || org.active_flags.includes('claude_team')) {
               plan = 'Claude Team';
             }
-          } else if (org.capabilities && Array.isArray(org.capabilities)) {
+          } 
+          if (plan === 'Free Plan' && org.capabilities && Array.isArray(org.capabilities)) {
             if (org.capabilities.includes('pro_tier')) {
               plan = 'Claude Pro';
             }
+          }
+          if (plan === 'Free Plan' && org.entitlements && Array.isArray(org.entitlements)) {
+            if (org.entitlements.includes('pro') || org.entitlements.some(e => typeof e === 'string' && e.includes('pro'))) {
+              plan = 'Claude Pro';
+            }
+          }
+          if (plan === 'Free Plan' && org.tier) {
+             if (String(org.tier).toLowerCase().includes('pro')) {
+                plan = 'Claude Pro';
+             }
           }
 
           window.postMessage({
