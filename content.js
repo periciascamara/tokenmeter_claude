@@ -27,6 +27,12 @@ function initWidget() {
       <button class="tm-widget-close" id="tm-widget-close" title="Recolher">&times;</button>
       
       <div class="tm-container">
+        <!-- Title Bar -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TOKENMETER</span>
+          <span style="font-size: 11px; font-weight: 600; color: #fff; background: #3b82f6; padding: 2px 6px; border-radius: 4px;">Versão 1.0.3</span>
+        </div>
+
         <!-- Profile Header -->
         <div class="tm-profile">
           <div class="tm-avatar-wrapper">
