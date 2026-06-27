@@ -30,7 +30,7 @@ function initWidget() {
         <!-- Title Bar -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TOKENMETER</span>
-          <span style="font-size: 11px; font-weight: 600; color: #fff; background: #3b82f6; padding: 2px 6px; border-radius: 4px;">Versão 1.0.3</span>
+          <span style="font-size: 11px; font-weight: 600; color: #fff; background: #3b82f6; padding: 2px 6px; border-radius: 4px;">Versão 1.0.4</span>
         </div>
 
         <!-- Profile Header -->
@@ -449,6 +449,50 @@ function eventMatchesHotkey(event, hotkeyStr) {
   return key === mainKeyPart;
 }
 
+// Function to extract model from the UI dropdown (real-time DOM scanning)
+function extractModelFromUI() {
+  const textarea = document.querySelector('div[contenteditable="true"]');
+  if (textarea) {
+    const container = textarea.closest('fieldset') || textarea.closest('form') || textarea.parentElement.parentElement;
+    if (container) {
+      // Look for buttons or clickable elements that contain the model name inside the input area
+      const clickables = container.querySelectorAll('button, [role="button"], [tabindex="0"], div.cursor-pointer, [aria-haspopup]');
+      for (let el of clickables) {
+        const text = el.textContent.trim();
+        const textLower = text.toLowerCase();
+        // Exclude the token meter itself just in case
+        if (el.closest('#tm-floating-widget')) continue;
+        
+        if ((textLower.includes('sonnet') || textLower.includes('opus') || textLower.includes('haiku') || textLower.includes('fable') || textLower.includes('claude')) && text.length > 2 && text.length < 35) {
+           return text;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// Periodically check the UI for model changes so it updates before a message is sent
+setInterval(() => {
+  if (!isContextValid()) return;
+  const uiModel = extractModelFromUI();
+  if (uiModel) {
+    chrome.storage.local.get(['currentModel'], (data) => {
+      const current = data.currentModel || '';
+      let currentDisplayName = current;
+      if (typeof getRatesForModel === 'function') {
+        currentDisplayName = getRatesForModel(current).name;
+      }
+      
+      // Update if the UI model is different from the stored API id and its display name
+      if (uiModel !== current && uiModel !== currentDisplayName) {
+        chrome.runtime.sendMessage({ type: 'UPDATE_MODEL', data: uiModel }, () => {
+          updateWidgetFromStorage();
+        });
+      }
+    });
+  }
+}, 1500);
 // Window keydown listener for widget hotkey
 window.addEventListener('keydown', (event) => {
   // If user is typing in a text field, do not trigger the hotkey toggle
