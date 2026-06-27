@@ -183,6 +183,20 @@
         const clone = response.clone();
         clone.json().then(data => {
           if (data) {
+            let mePlan = null;
+            const meStr = JSON.stringify(data).toLowerCase();
+            if (meStr.includes('team_tier') || meStr.includes('"tier":"team"') || meStr.includes('claude_team')) {
+              mePlan = 'Claude Team';
+            } else if (meStr.includes('pro_tier') || meStr.includes('"tier":"pro"') || meStr.includes('claude_pro') || meStr.includes('"plan":"pro"') || meStr.includes('claude pro')) {
+              mePlan = 'Claude Pro';
+            }
+            if (mePlan) {
+              window.postMessage({
+                type: 'CLAUDE_ORG_RECEIVED',
+                data: { plan: mePlan }
+              }, '*');
+            }
+
             window.postMessage({
               type: 'CLAUDE_ME_RECEIVED',
               data: {
@@ -275,6 +289,21 @@
       })
       .then(data => {
         if (data) {
+          // Check for plan inside /api/me as well just in case
+          let mePlan = null;
+          const meStr = JSON.stringify(data).toLowerCase();
+          if (meStr.includes('team_tier') || meStr.includes('"tier":"team"') || meStr.includes('claude_team')) {
+            mePlan = 'Claude Team';
+          } else if (meStr.includes('pro_tier') || meStr.includes('"tier":"pro"') || meStr.includes('claude_pro') || meStr.includes('"plan":"pro"') || meStr.includes('claude pro')) {
+            mePlan = 'Claude Pro';
+          }
+          if (mePlan) {
+            window.postMessage({
+              type: 'CLAUDE_ORG_RECEIVED',
+              data: { plan: mePlan }
+            }, '*');
+          }
+
           window.postMessage({
             type: 'CLAUDE_ME_RECEIVED',
             data: {
@@ -294,27 +323,12 @@
           window.claudeOrgUuid = org.uuid; // Save for refreshing later
           let plan = 'Free Plan';
           
-          if (org.active_flags && Array.isArray(org.active_flags)) {
-            if (org.active_flags.includes('pro') || org.active_flags.includes('claude_pro')) {
-              plan = 'Claude Pro';
-            } else if (org.active_flags.includes('team') || org.active_flags.includes('claude_team')) {
-              plan = 'Claude Team';
-            }
-          } 
-          if (plan === 'Free Plan' && org.capabilities && Array.isArray(org.capabilities)) {
-            if (org.capabilities.includes('pro_tier')) {
-              plan = 'Claude Pro';
-            }
-          }
-          if (plan === 'Free Plan' && org.entitlements && Array.isArray(org.entitlements)) {
-            if (org.entitlements.includes('pro') || org.entitlements.some(e => typeof e === 'string' && e.includes('pro'))) {
-              plan = 'Claude Pro';
-            }
-          }
-          if (plan === 'Free Plan' && org.tier) {
-             if (String(org.tier).toLowerCase().includes('pro')) {
-                plan = 'Claude Pro';
-             }
+          // Robust plan detection by checking the entire JSON string for plan keywords
+          const orgStr = JSON.stringify(orgs).toLowerCase();
+          if (orgStr.includes('team_tier') || orgStr.includes('"tier":"team"') || orgStr.includes('claude_team')) {
+            plan = 'Claude Team';
+          } else if (orgStr.includes('pro_tier') || orgStr.includes('"tier":"pro"') || orgStr.includes('claude_pro') || orgStr.includes('"plan":"pro"') || orgStr.includes('claude pro')) {
+            plan = 'Claude Pro';
           }
 
           window.postMessage({

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TokenMeter - Claude.ai Token Tracker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Widget flutuante e popup para monitorar o uso de tokens da sessão e semanais no Claude.ai",
   "icons": {
     "16": "icons/icon16.png",
