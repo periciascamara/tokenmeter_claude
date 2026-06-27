@@ -45,7 +45,7 @@ function initWidget() {
           <span>Modelo Ativo:</span>
           <span class="tm-model-badge">
             <span class="tm-model-dot"></span>
-            <span id="tm-active-model">Sonnet 3.5</span>
+            <span id="tm-active-model">Claude 3.5 Sonnet</span>
           </span>
         </div>
 
